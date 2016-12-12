@@ -22,7 +22,7 @@ namespace WebcamUserControl
 {
     public partial class VideoPortControl : UserControl
     {
-        Microsoft.ProjectOxford.Face.FaceServiceClient faceserviceclient = new FaceServiceClient("2c2a7f6eca9e4197926721a886786d6b");
+        
         Microsoft.ProjectOxford.Face.FaceServiceClient faceClient = new FaceServiceClient("2c2a7f6eca9e4197926721a886786d6b");
         // Create grabber. 
        // FrameGrabber<Face[]> grabber = new FrameGrabber<Face[]>();
@@ -196,7 +196,7 @@ namespace WebcamUserControl
 
         private async Task<LiveCameraResult> FacesAnalysisFunction(VideoFrame frame)
         {
-            Console.WriteLine("rorororororor");
+      
             // Encode image. 
             var jpg = frame.Image.ToMemoryStream(".jpg", s_jpegParams);
             // Submit image to API. 
@@ -204,7 +204,11 @@ namespace WebcamUserControl
                 FaceAttributeType.Gender, FaceAttributeType.HeadPose };
             var faces = await faceClient.DetectAsync(jpg, returnFaceAttributes: attrs);
             // Count the API call. 
-            Console.WriteLine("!!!!"+faces.Length);
+            int i;
+            for( i =0 ; i < faces.Length ; i++){
+                Console.WriteLine("age : "+faces[i].FaceAttributes.Age);
+                Console.WriteLine("gender : "+faces[i].FaceAttributes.Gender);
+            }
             // Output. 
             return new LiveCameraResult { Faces = faces };
         }
