@@ -88,7 +88,7 @@ namespace WebcamUserControl.Properties
 
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("00:00:03")]
+        [global::System.Configuration.DefaultSettingValueAttribute("00:00:10")]  //10秒傳一次 且更新frame
         public global::System.TimeSpan AnalysisInterval
         {
             get

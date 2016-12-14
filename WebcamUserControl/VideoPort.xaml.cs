@@ -18,6 +18,10 @@ using Microsoft.ProjectOxford.Face.Contract;
 using WebCamUserControl;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
+using System.Globalization;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+
 namespace WebcamUserControl
 {
     public partial class VideoPortControl : UserControl
@@ -29,6 +33,8 @@ namespace WebcamUserControl
         private readonly FrameGrabber<LiveCameraResult> _grabber = null;
         private LiveCameraResult _latestResultsToDisplay = null;
         private bool _fuseClientRemoteResults;
+        private static string BLOB_CONTAINER_STRING = "iseeyoucontainer";
+        private static string BLOB_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=iseeyou;AccountKey=QqNzNXyQ5g4c+CJVTngszyuDjmJgfNFg2qvZZMQo9ISr+PDfCAN8ZFxY7YPGCCrU9hd/aCEaXnnXWlEJv1NJrQ==;";
         private static readonly ImageEncodingParam[] s_jpegParams = {
             new ImageEncodingParam(OpenCvSharp.ImageEncodingID.JpegQuality,60) //ImwriteFlags.JpegQuality, 60)
         };
@@ -196,9 +202,31 @@ namespace WebcamUserControl
 
         private async Task<LiveCameraResult> FacesAnalysisFunction(VideoFrame frame)
         {
-      
+            //Save to img
+            string time = System.DateTime.Now.ToString("hh'-'mm'-'ss", CultureInfo.CurrentUICulture.DateTimeFormat);
+            string filename = time + ".jpg";
+            frame.Image.SaveImage(filename);
+
+            //Upload To Blob
+            string path;
+            if (Path.GetPathRoot(filename) != null && Path.GetPathRoot(filename) != "")
+                path = filename.Replace(Path.GetPathRoot(filename), "").Replace("\\", "/");
+            else
+                path = filename.Replace("\\", "/");
+
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(BLOB_CONNECTION_STRING);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer container = blobClient.GetContainerReference(BLOB_CONTAINER_STRING);
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(path);
+            using (var fileStream = System.IO.File.OpenRead(filename))
+            {
+                blockBlob.UploadFromStream(fileStream);
+            }
+
+
             // Encode image. 
             var jpg = frame.Image.ToMemoryStream(".jpg", s_jpegParams);
+           
             // Submit image to API. 
             var attrs = new List<FaceAttributeType> { FaceAttributeType.Age,
                 FaceAttributeType.Gender, FaceAttributeType.HeadPose };
